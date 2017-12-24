@@ -577,9 +577,8 @@ thread_t thread_head()
 }
 void print_queue()
 {
-	printf("=======\n");
-	
-	  Thread* p = ReadyQHead;
+	printf("Running tid = (%lu) run = (%d) type = (%ld) status = (%d)\n", Running_Thread->tid,Running_Thread->bRunnable,Running_Thread->type,Running_Thread->status);
+		Thread* p = ReadyQHead;
 	  int i=0;
       while(p)
     {
@@ -588,7 +587,6 @@ void print_queue()
 	  i++;
       p = p->pNext;
 	}
-	//printf("Asdfaf\n");
 	if(qcbTblEntry[0].pQcb!=NULL)
 	{
 		//printf("Test\n");

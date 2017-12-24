@@ -4,6 +4,7 @@
 #include "Scheduler.h"
 #include <unistd.h>
 #include <stdio.h>
+#include "MsgQueue.h"
 static pthread_cond_t bcond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t bmutex = PTHREAD_MUTEX_INITIALIZER;
 int RunScheduler(void)
@@ -47,15 +48,7 @@ int RunScheduler(void)
 		__ContextSwitch(Running_Thread,Ready_peek());
 		//if(ReadyQTail->status==THREAD_STATUS_ZOMBIE)
 		//Ready_remove_element(ReadyQTail);
-	// 	Thread* p = ReadyQHead;
-	//   int i=0;
-    //   while(p)
-    // {
-		
-	//   printf("Ready(%d)tid = (%lu) run = (%d) type = (%ld) status = (%d)\n",i, p->tid,p->bRunnable,p->type,p->status);
-	//   i++;
-    //   p = p->pNext;
-	// }
+	  
 
 		//Running_Thread->tid=Ready_peek()->tid;
 		//__thread_wakeup(Running_Thread);
@@ -84,7 +77,7 @@ void __ContextSwitch(Thread* pCurThread, Thread* pNewThread){
 		}
 		ReadyQTail=Running_Thread;
 		pthread_kill(Running_Thread->tid, SIGUSR1);
-		//usleep(10);
+		usleep(10);
 	}
 
 	Running_Thread = pNewThread;

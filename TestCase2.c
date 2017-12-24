@@ -23,6 +23,7 @@ int SendInTestCase2(int type)
 		perror("msgget");
 		exit(1);
 	}
+
 	mesg.mytype = type;
 	for(count=0; count<2; count++){
 		strcpy(mesg.mtext,"Message Q Test");
@@ -81,8 +82,7 @@ void TestCase2(void)
 	thread_create(&pid[0],NULL,(void*)SendInTestCase2,(void*)1);
 	thread_create(&pid[1],NULL,(void*)SendInTestCase2,(void*)2);
 	thread_create(&pid[2],NULL,(void*)SendInTestCase2,(void*)3);
-
-	sleep(10);
-
+for(int i=0;i<10;i++)
+sleep(TIMESLICE);
 	RemoveMessageQueue();
 }

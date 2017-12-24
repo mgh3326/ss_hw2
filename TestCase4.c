@@ -97,7 +97,8 @@ void TestCase4(void)
 	thread_create(&pid[1],NULL,(void*)Receiver,(void*)key);
 	thread_create(&pid[0],NULL,(void*)Sender,(void*)key);
 
-	sleep(10);
+	for(int i=0;i<10;i++)
+	sleep(2);
 	RemoveMessageQueueTest4(1234);
 	RemoveMessageQueueTest4(1235);
 
