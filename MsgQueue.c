@@ -25,7 +25,9 @@ int mymsgget(int key, int msgflg)
 	for (int i = 0; i < MAX_QCB_SIZE; i++)
 	{
 		if (key == qcbTblEntry[i].key)
-		{sign = 0;
+		{
+			//printf("mymsgget Test (%d) (%d) i : (%d)\n",key,qcbTblEntry[i].key,i);
+			sign = 0;
 		pthread_cond_signal(&run_wait);
 	
 		pthread_mutex_unlock(&run_lock);
@@ -35,6 +37,7 @@ int mymsgget(int key, int msgflg)
 	
 	for (int i = 0; i < MAX_QCB_SIZE; i++)
 	{
+			//printf(" 생성 mymsgget Test (%d) (%d) i : (%d)\n",key,qcbTblEntry[i].key,i);
 
 		if (qcbTblEntry[i].key == -1)
 		{
@@ -68,7 +71,6 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 	sign = 1;
 	
 		pthread_mutex_lock(&run_lock);
-
 
 	Message *p = malloc(1 * sizeof *p);
 	p->size = msgsz;
@@ -111,7 +113,7 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 			if(qcbTblEntry[msqid].pQcb!=NULL)
 			{
 				Thread* q = qcbTblEntry[msqid].pQcb->pThreadHead;
-				msqid=0;
+				//msqid=0;//이거 뭐야
 				while (q)
 				{
 			
@@ -155,11 +157,9 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 							return -1;
 						}
 						else
-
 						{
 							//Wait_remove_element(getThread_wait(tid));//삭제하는 부분
-							//printf("여기서 뒤졋구나(%d)\n", msqid);
-						
+					
 							
 							if (NULL == q->pNext && (NULL == qcbTblEntry[msqid].pQcb->pThreadHead->pNext && NULL == qcbTblEntry[msqid].pQcb->pThreadTail->pNext)) /* only one element in queue */
 							{
@@ -223,13 +223,14 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			for (; p; p = p->pNext)
 			{
 				
-				if (msgtyp == p->type)
+				if (msgtyp == p->type)//메세지 큐가 있는지 확인
 				{
 					for (int index = 0; index < msgsz; index++)
 					{
 						((Message *)msgp)->data[index] = p->data[index];	
 					}
-					((Message *)msgp)->type = p->type;	
+					((Message *)msgp)->type = p->type;
+					//있다면 메세지큐 삭제	
 					if (NULL == p->pNext && (NULL == qcbTblEntry[i].pQcb->pMsgHead->pNext && NULL == qcbTblEntry[i].pQcb->pMsgTail->pNext)) /* only one element in queue */
 					{
 						qcbTblEntry[i].pQcb->pMsgHead = qcbTblEntry[i].pQcb->pMsgTail = NULL;
@@ -260,13 +261,13 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			}
 
 			//for문 끝나고 이제 waitingqueue 구현 index 때문에 여기서 부터 하는게 맞겠다.
-			Thread *thread_p = getThread(thread_self());
+			Thread *thread_p = Running_Thread;
 			thread_p->type=msgtyp;
 			
 			if (NULL == qcbTblEntry[i].pQcb->pThreadHead && NULL == qcbTblEntry[i].pQcb->pThreadTail)
 			{
 				
-				Ready_remove_element(getThread(thread_self()));
+				Running_Thread=NULL;
 				
 				qcbTblEntry[i].pQcb->pThreadHead = qcbTblEntry[i].pQcb->pThreadTail = thread_p;
 				
@@ -295,7 +296,7 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			}
 			else{
 
-				Ready_remove_element(getThread(thread_self()));
+				Running_Thread=NULL;
 
 				qcbTblEntry[i].pQcb->pThreadTail->pNext = thread_p;
 				thread_p->pPrev = qcbTblEntry[i].pQcb->pThreadTail;
@@ -313,8 +314,7 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			// fflush(stdout);
 			//__thread_wait_handler(0);	 //다시 재움
 			//Thread *pTh;
-			__thread_wakeup(ReadyQHead);//이새끼를 깨워볼까
-			ohoh=1;
+			//__thread_wakeup(ReadyQHead);//이새끼를 깨워볼까
 			thread_p->bRunnable == FALSE;
 			// __getThread()는 tid로 linked list의 TCB를 찾아서 반환한다.
 			//thread_p = getThread(pthread_self()); // child에서 TCB가 초기화 안되었는데, 이 함수가 호출되어도 되나 ?

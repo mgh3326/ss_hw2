@@ -47,8 +47,15 @@ int RunScheduler(void)
 		__ContextSwitch(Running_Thread,Ready_peek());
 		//if(ReadyQTail->status==THREAD_STATUS_ZOMBIE)
 		//Ready_remove_element(ReadyQTail);
-
-
+	// 	Thread* p = ReadyQHead;
+	//   int i=0;
+    //   while(p)
+    // {
+		
+	//   printf("Ready(%d)tid = (%lu) run = (%d) type = (%ld) status = (%d)\n",i, p->tid,p->bRunnable,p->type,p->status);
+	//   i++;
+    //   p = p->pNext;
+	// }
 
 		//Running_Thread->tid=Ready_peek()->tid;
 		//__thread_wakeup(Running_Thread);

@@ -62,6 +62,7 @@ int thread_create(thread_t *thread, thread_attr_t *attr, void *(*start_routine)(
 	{
 		usleep(1);
 	}
+	//printf("스레드 하나 생성\n");
 	getThread(*thread)->parentTid = thread_self();
 	getThread(*thread)->pExitCode = arg;
 
@@ -552,7 +553,23 @@ void Ready_delete_element(struct _Thread *d)
 }
 Thread *Ready_peek()
 {
-	return ReadyQHead;
+		Thread *temp;
+
+if (ReadyQHead==NULL)
+		return NULL;
+	else if(ReadyQHead->pNext == NULL){
+		temp = ReadyQHead;
+		ReadyQHead = NULL;
+		ReadyQTail = NULL;
+	}
+	else{
+		temp = ReadyQHead;
+		ReadyQHead = ReadyQHead->pNext;
+		ReadyQHead->pPrev = NULL;
+		temp->pNext = NULL;
+	}
+
+	return temp;
 }
 thread_t thread_head()
 {
