@@ -278,8 +278,7 @@ void thread_wait(thread_t tid)
 void __thread_wakeup(Thread *pTh)
 {
 	pthread_mutex_lock(&(pTh->readyMutex));
-	if(pTh->status != THREAD_STATUS_ZOMBIE)
-		pTh->status = THREAD_STATUS_RUN;
+
 	pTh->bRunnable = TRUE;
 	//printf("__thread_wakeup start%u\n",pTh->tid);
 
@@ -577,6 +576,8 @@ thread_t thread_head()
 }
 void print_queue()
 {
+			printf("-------\n");
+
 	printf("Running tid = (%lu) run = (%d) type = (%ld) status = (%d)\n", Running_Thread->tid,Running_Thread->bRunnable,Running_Thread->type,Running_Thread->status);
 		Thread* p = ReadyQHead;
 	  int i=0;

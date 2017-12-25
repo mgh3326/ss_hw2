@@ -67,16 +67,15 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 	sign = 1;
 
 	pthread_mutex_lock(&run_lock);
-
 	Message *p = malloc(1 * sizeof *p);
 	p->size = msgsz;
 	p->type = ((Message *)msgp)->type;
 	// printf("			얘 찾고잇어 (%d) = (%d)\n",p->type,((Message *)msgp)->type);
-	//strcpy(p->data, ((Message *)msgp)->data);
-	for (int i = 0; i < msgsz; i++)
-	{
-		p->data[i] = ((Message *)msgp)->data[i];
-	}
+	strcpy(p->data, ((Message *)msgp)->data);
+	// for (int i = 0; i < msgsz; i++)
+	// {
+	// 	p->data[i] = ((Message *)msgp)->data[i];
+	// }
 
 	if (qcbTblEntry[msqid].pQcb->pMsgHead == NULL && qcbTblEntry[msqid].pQcb->pMsgTail == NULL)
 	{

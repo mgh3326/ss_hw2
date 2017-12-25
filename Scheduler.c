@@ -48,7 +48,7 @@ int RunScheduler(void)
 		__ContextSwitch(Running_Thread,Ready_peek());
 		//if(ReadyQTail->status==THREAD_STATUS_ZOMBIE)
 		//Ready_remove_element(ReadyQTail);
-	  
+	  //print_queue();
 
 		//Running_Thread->tid=Ready_peek()->tid;
 		//__thread_wakeup(Running_Thread);
@@ -62,10 +62,8 @@ int RunScheduler(void)
 	}
 }
 void __ContextSwitch(Thread* pCurThread, Thread* pNewThread){
-	if(pCurThread!=NULL && pCurThread->status != THREAD_STATUS_BLOCKED){
+	if(pCurThread!=NULL){
 		Running_Thread->bRunnable = 0;
-		if(Running_Thread->status != THREAD_STATUS_ZOMBIE)
-			Running_Thread->status = THREAD_STATUS_READY;
 		//Ready_enqueue(Running_Thread);
 		if(ReadyQHead==NULL)
 		{
@@ -77,7 +75,7 @@ void __ContextSwitch(Thread* pCurThread, Thread* pNewThread){
 		}
 		ReadyQTail=Running_Thread;
 		pthread_kill(Running_Thread->tid, SIGUSR1);
-		usleep(10);
+
 	}
 
 	Running_Thread = pNewThread;

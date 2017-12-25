@@ -4,5 +4,5 @@
 void Init()
 {
     _InitMsgQueue();
-    ohoh=0;
+    // ohoh=0;
 }
