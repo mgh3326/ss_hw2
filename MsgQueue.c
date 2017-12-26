@@ -300,7 +300,7 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 
 	//break;
 
-	return -1; //이럼 실패 같은데?
+	return -1; //실패의 경우
 }
 
 int mymsgctl(int msqid, int cmd, void *buf)
@@ -327,7 +327,6 @@ int mymsgctl(int msqid, int cmd, void *buf)
 	}
 	free(qcbTblEntry[msqid].pQcb);
 	qcbTblEntry[msqid].pQcb = NULL;
-	//다른거 다 free 해주고 NULL 해주어야함
 
 	//printf("mymsgctl msqid : (%d)\n", msqid);
 	return 0;
