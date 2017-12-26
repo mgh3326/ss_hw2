@@ -28,7 +28,7 @@ typedef struct _Thread
 	pthread_t parentTid;
 	Thread *pPrev;
 	Thread *pNext;
-	long type;//추가됨
+	long type; //추가됨
 } Thread;
 
 typedef struct __wrapperArg

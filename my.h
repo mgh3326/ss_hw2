@@ -32,6 +32,8 @@ void Ready_delete_element(struct _Thread *d);
 void __thread_wait_handler(int signo);
 void __thread_wakeup(Thread *pTh);
 Thread *Ready_peek();
+Thread *Ready_pop();
+
 thread_t thread_head();
 void print_queue();
 //여기 까지 추가

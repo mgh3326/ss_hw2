@@ -19,22 +19,14 @@ void _InitMsgQueue(void)
 int mymsgget(int key, int msgflg)
 {
 	//printf("mymsgget 시작 (%d)",key);
-	sign = 1;
-
-	pthread_mutex_lock(&run_lock);
+	for (int i = 0; i < MAX_QCB_SIZE; i++)
+		if (key == qcbTblEntry[i].key)
+			return i;
 
 	for (int i = 0; i < MAX_QCB_SIZE; i++)
 	{
 		//printf(" 생성 mymsgget Test (%d) (%d) i : (%d)\n",key,qcbTblEntry[i].key,i);
-		if (key == qcbTblEntry[i].key)
-		{
-			//printf("mymsgget Test (%d) (%d) i : (%d)\n",key,qcbTblEntry[i].key,i);
-			sign = 0;
-			pthread_cond_signal(&run_wait);
 
-			pthread_mutex_unlock(&run_lock);
-			return i;
-		}
 		if (qcbTblEntry[i].key == -1)
 		{
 			qcbTblEntry[i].key = key;
@@ -48,34 +40,26 @@ int mymsgget(int key, int msgflg)
 			p->msgCount = 0;
 			p->waitThreadCount = 0;
 			qcbTblEntry[i].pQcb = p;
-			sign = 0;
-			pthread_cond_signal(&run_wait);
 
-			pthread_mutex_unlock(&run_lock);
 			return i;
 		}
 	}
-	sign = 0;
-	pthread_cond_signal(&run_wait);
 
-	pthread_mutex_unlock(&run_lock);
 	return 0;
 }
 
 int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 {
-	sign = 1;
 
-	pthread_mutex_lock(&run_lock);
 	Message *p = malloc(1 * sizeof *p);
 	p->size = msgsz;
 	p->type = ((Message *)msgp)->type;
 	// printf("			얘 찾고잇어 (%d) = (%d)\n",p->type,((Message *)msgp)->type);
-	strcpy(p->data, ((Message *)msgp)->data);
-	// for (int i = 0; i < msgsz; i++)
-	// {
-	// 	p->data[i] = ((Message *)msgp)->data[i];
-	// }
+	// strcpy(p->data, ((Message *)msgp)->data);
+	for (int i = 0; i < msgsz; i++)
+	{
+		p->data[i] = ((Message *)msgp)->data[i];
+	}
 
 	if (qcbTblEntry[msqid].pQcb->pMsgHead == NULL && qcbTblEntry[msqid].pQcb->pMsgTail == NULL)
 	{
@@ -88,10 +72,7 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 	}
 	else if (NULL == qcbTblEntry[msqid].pQcb->pMsgHead || NULL == qcbTblEntry[msqid].pQcb->pMsgTail)
 	{
-		sign = 0;
-		pthread_cond_signal(&run_wait);
 
-		pthread_mutex_unlock(&run_lock);
 		return -1;
 	}
 	else
@@ -146,8 +127,6 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 				}
 				else if (NULL == ReadyQHead || NULL == ReadyQTail)
 				{
-					fprintf(stderr, "IN: %s @%d: Serious error.", __FILE__, __LINE__);
-					fprintf(stderr, "List one of the list's qcbTblEntry[msqid].pQcb->pThreadHead/pTail is null while other is not\n");
 					return -1;
 				}
 				else
@@ -192,19 +171,12 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 	}
 	//break;
 
-	sign = 0;
-	pthread_cond_signal(&run_wait);
-
-	pthread_mutex_unlock(&run_lock);
 	return 0; //for문이 다 끝나면 에러가 나오는게 맞음
 }
 
 int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 {
 
-	sign = 1;
-
-	pthread_mutex_lock(&run_lock);
 	// for (int i = 0; i < MAX_QCB_SIZE; i++)
 	// {
 	// 	if (i == msqid)//key 받는거에서 이거로 바꿈
@@ -244,10 +216,7 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 					p->pNext->pPrev = p->pPrev;
 				}
 				free(p); //이거 해야되나?
-				sign = 0;
-				pthread_cond_signal(&run_wait);
 
-				pthread_mutex_unlock(&run_lock);
 				return strlen(((Message *)msgp)->data); //이렇게 되면 정상적으로 삭제가 되네
 			}
 		}
@@ -267,22 +236,10 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			qcbTblEntry[i].pQcb->pThreadHead->status = THREAD_STATUS_BLOCKED;
 			qcbTblEntry[i].pQcb->pThreadHead->bRunnable = 0;
 
-			sign = 0;
-
-			pthread_cond_signal(&run_wait);
-
-			pthread_mutex_unlock(&run_lock);
-
 			// return 0;
 		}
 		else if (NULL == qcbTblEntry[i].pQcb->pThreadHead || NULL == qcbTblEntry[i].pQcb->pThreadTail)
 		{
-			fprintf(stderr, "IN: %s @%d: Serious error.", __FILE__, __LINE__);
-			fprintf(stderr, "List one of the list's ReadyQHead/pTail is null while other is not\n");
-			sign = 0;
-			pthread_cond_signal(&run_wait);
-
-			pthread_mutex_unlock(&run_lock);
 			return -1;
 		}
 		else
@@ -296,10 +253,6 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			qcbTblEntry[i].pQcb->pThreadTail->pNext = NULL;
 			qcbTblEntry[i].pQcb->pThreadTail->status = THREAD_STATUS_BLOCKED;
 			qcbTblEntry[i].pQcb->pThreadTail->bRunnable = 0;
-			sign = 0;
-			pthread_cond_signal(&run_wait);
-
-			pthread_mutex_unlock(&run_lock);
 
 			// return 0;
 		}
@@ -352,29 +305,30 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 
 int mymsgctl(int msqid, int cmd, void *buf)
 {
+	if (qcbTblEntry[msqid].pQcb->pMsgHead != NULL)
+		return -1;
 	qcbTblEntry[msqid].key = -1;
-	Message *p_massage = qcbTblEntry[msqid].pQcb->pMsgHead;
+	//Message *p_massage = qcbTblEntry[msqid].pQcb->pMsgHead;
 	Thread *p_thread = qcbTblEntry[msqid].pQcb->pThreadHead;
 
-	while(p_massage)
+	// while(p_massage)
+	// {
+	// 		Message *q_massage = p_massage;
+	// 	p_massage=p_massage->pNext;
+	// 	free(q_massage);
+	// 	q_massage=NULL;
+	// }
+	while (p_thread)
 	{
-			Message *q_massage = p_massage;
-		p_massage=p_massage->pNext;
-		free(q_massage);
-		q_massage=NULL;
-	}
-	while(p_thread)
-	{
-		Thread * q_thread = p_thread;
-		p_thread=p_thread->pNext;
+		Thread *q_thread = p_thread;
+		p_thread = p_thread->pNext;
 		free(q_thread);
-		q_thread=NULL;
-
+		q_thread = NULL;
 	}
 	free(qcbTblEntry[msqid].pQcb);
-	qcbTblEntry[msqid].pQcb=NULL;
+	qcbTblEntry[msqid].pQcb = NULL;
 	//다른거 다 free 해주고 NULL 해주어야함
 
-	printf("RemoveMessageQueue msqid : (%d)\n",msqid);
+	//printf("mymsgctl msqid : (%d)\n", msqid);
 	return 0;
 }

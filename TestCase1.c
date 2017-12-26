@@ -90,6 +90,7 @@ void SendInTestCase1()
             running = 0;
             exit(0);
         }
+        sleep(1);
     }
 }
 

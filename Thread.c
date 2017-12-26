@@ -259,8 +259,8 @@ void __thread_wait_handler(int signo)
 	pTh->bRunnable == FALSE;
 	// __getThread()는 tid로 linked list의 TCB를 찾아서 반환한다.
 	pTh = getThread(pthread_self()); // child에서 TCB가 초기화 안되었는데, 이 함수가 호출되어도 되나 ?
-								 // printf(" wait tid %u\n",pTh->tid);
-	if(pTh == NULL)
+									 // printf(" wait tid %u\n",pTh->tid);
+	if (pTh == NULL)
 		pTh = Running_Thread;
 	pthread_mutex_lock(&(pTh->readyMutex));
 	//         printf("__thread_wait_handler start %u\n",pTh->tid);
@@ -552,16 +552,40 @@ void Ready_delete_element(struct _Thread *d)
 }
 Thread *Ready_peek()
 {
-		Thread *temp;
+	Thread *temp;
 
-if (ReadyQHead==NULL)
+	if (ReadyQHead == NULL)
 		return NULL;
-	else if(ReadyQHead->pNext == NULL){
+	else if (ReadyQHead->pNext == NULL)
+	{
 		temp = ReadyQHead;
 		ReadyQHead = NULL;
 		ReadyQTail = NULL;
 	}
-	else{
+	else
+	{
+		temp = ReadyQHead;
+		ReadyQHead = ReadyQHead->pNext;
+		ReadyQHead->pPrev = NULL;
+		temp->pNext = NULL;
+	}
+
+	return temp;
+}
+Thread *Ready_pop()
+{
+	Thread *temp;
+
+	if (ReadyQHead == NULL)
+		return NULL;
+	else if (ReadyQHead->pNext == NULL)
+	{
+		temp = ReadyQHead;
+		ReadyQHead = NULL;
+		ReadyQTail = NULL;
+	}
+	else
+	{
 		temp = ReadyQHead;
 		ReadyQHead = ReadyQHead->pNext;
 		ReadyQHead->pPrev = NULL;
@@ -576,44 +600,40 @@ thread_t thread_head()
 }
 void print_queue()
 {
-			printf("-------\n");
+	printf("-------\n");
 
-	printf("Running tid = (%lu) run = (%d) type = (%ld) status = (%d)\n", Running_Thread->tid,Running_Thread->bRunnable,Running_Thread->type,Running_Thread->status);
-		Thread* p = ReadyQHead;
-	  int i=0;
-      while(p)
-    {
-		
-	  printf("Ready(%d)tid = (%lu) run = (%d) type = (%ld) status = (%d)\n",i, p->tid,p->bRunnable,p->type,p->status);
-	  i++;
-      p = p->pNext;
+	printf("Running tid = (%lu) run = (%d) type = (%ld) status = (%d)\n", Running_Thread->tid, Running_Thread->bRunnable, Running_Thread->type, Running_Thread->status);
+	Thread *p = ReadyQHead;
+	int i = 0;
+	while (p)
+	{
+
+		printf("Ready(%d)tid = (%lu) run = (%d) type = (%ld) status = (%d)\n", i, p->tid, p->bRunnable, p->type, p->status);
+		i++;
+		p = p->pNext;
 	}
-	if(qcbTblEntry[0].pQcb!=NULL)
+	if (qcbTblEntry[0].pQcb != NULL)
 	{
 		//printf("Test\n");
-		Thread* q = qcbTblEntry[0].pQcb->pThreadHead;
-		i=0;
+		Thread *q = qcbTblEntry[0].pQcb->pThreadHead;
+		i = 0;
 		printf("-------\n");
-		while(q)
-	  {
+		while (q)
+		{
 
-		
-		printf("Wait[0](%d)tid = (%lu) run = (%d) type = (%ld) status = (%d)\n",i, q->tid,q->bRunnable,q->type,q->status);
-		i++;
-		q = q->pNext;
-	  }
-	  Message* r = qcbTblEntry[0].pQcb->pMsgHead;
-	  i=0;
-	  printf("______\n");
-	  while(r)
-	  {
+			printf("Wait[0](%d)tid = (%lu) run = (%d) type = (%ld) status = (%d)\n", i, q->tid, q->bRunnable, q->type, q->status);
+			i++;
+			q = q->pNext;
+		}
+		Message *r = qcbTblEntry[0].pQcb->pMsgHead;
+		i = 0;
+		printf("______\n");
+		while (r)
+		{
 
-		
-		printf("Message(%d)type = (%ld)\n",i,r->type);
-		i++;
-		r = r->pNext;
-	  }
+			printf("Message(%d)type = (%ld)\n", i, r->type);
+			i++;
+			r = r->pNext;
+		}
 	}
-	
-    
 }
