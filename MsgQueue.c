@@ -25,8 +25,6 @@ int mymsgget(int key, int msgflg)
 
 	for (int i = 0; i < MAX_QCB_SIZE; i++)
 	{
-		//printf(" 생성 mymsgget Test (%d) (%d) i : (%d)\n",key,qcbTblEntry[i].key,i);
-
 		if (qcbTblEntry[i].key == -1)
 		{
 			qcbTblEntry[i].key = key;
@@ -54,8 +52,6 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 	Message *p = malloc(1 * sizeof *p);
 	p->size = msgsz;
 	p->type = ((Message *)msgp)->type;
-	// printf("			얘 찾고잇어 (%d) = (%d)\n",p->type,((Message *)msgp)->type);
-	// strcpy(p->data, ((Message *)msgp)->data);
 	for (int i = 0; i < msgsz; i++)
 	{
 		p->data[i] = ((Message *)msgp)->data[i];
@@ -63,12 +59,8 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 
 	if (qcbTblEntry[msqid].pQcb->pMsgHead == NULL && qcbTblEntry[msqid].pQcb->pMsgTail == NULL)
 	{
-
 		p->pPrev = p->pNext = NULL;
 		qcbTblEntry[msqid].pQcb->pMsgHead = qcbTblEntry[msqid].pQcb->pMsgTail = p;
-
-		//return 0;
-		//qcbTblEntry[msqid].pQcb->pMsgHead=p;
 	}
 	else if (NULL == qcbTblEntry[msqid].pQcb->pMsgHead || NULL == qcbTblEntry[msqid].pQcb->pMsgTail)
 	{
@@ -81,14 +73,11 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 		qcbTblEntry[msqid].pQcb->pMsgTail->pNext = p;
 		p->pPrev = qcbTblEntry[msqid].pQcb->pMsgTail;
 		qcbTblEntry[msqid].pQcb->pMsgTail = p;
-
-		//return 0;
 	}
 
 	if (qcbTblEntry[msqid].pQcb != NULL)
 	{
 		Thread *q = qcbTblEntry[msqid].pQcb->pThreadHead;
-		//msqid=0;//이거 뭐야
 		while (q)
 		{
 
@@ -161,26 +150,17 @@ int mymsgsnd(int msqid, const void *msgp, int msgsz, int msgflg)
 					ReadyQTail->status = THREAD_STATUS_READY;
 					ReadyQTail->bRunnable = 0;
 				}
-
-				// printf("하나 삭제하고 튐\n");
 				break;
-				// printf("이거 나오면 안됨");
 			}
 			q = q->pNext;
 		}
 	}
-	//break;
 
 	return 0; //for문이 다 끝나면 에러가 나오는게 맞음
 }
 
 int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 {
-
-	// for (int i = 0; i < MAX_QCB_SIZE; i++)
-	// {
-	// 	if (i == msqid)//key 받는거에서 이거로 바꿈
-	// 	{
 	while (1)
 	{
 		int i = msqid;
@@ -215,13 +195,13 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 					p->pPrev->pNext = p->pNext;
 					p->pNext->pPrev = p->pPrev;
 				}
-				free(p); //이거 해야되나?
+				free(p); //필요?
 
 				return strlen(((Message *)msgp)->data); //이렇게 되면 정상적으로 삭제가 되네
 			}
 		}
 
-		//for문 끝나고 이제 waitingqueue 구현 index 때문에 여기서 부터 하는게 맞겠다.
+		//for문 끝나고 이제 waitingqueue 구현
 		Thread *thread_p = Running_Thread;
 		thread_p->type = msgtyp;
 
@@ -235,8 +215,6 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			thread_p->pNext = thread_p->pPrev = NULL;
 			qcbTblEntry[i].pQcb->pThreadHead->status = THREAD_STATUS_BLOCKED;
 			qcbTblEntry[i].pQcb->pThreadHead->bRunnable = 0;
-
-			// return 0;
 		}
 		else if (NULL == qcbTblEntry[i].pQcb->pThreadHead || NULL == qcbTblEntry[i].pQcb->pThreadTail)
 		{
@@ -253,52 +231,14 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 			qcbTblEntry[i].pQcb->pThreadTail->pNext = NULL;
 			qcbTblEntry[i].pQcb->pThreadTail->status = THREAD_STATUS_BLOCKED;
 			qcbTblEntry[i].pQcb->pThreadTail->bRunnable = 0;
-
-			// return 0;
 		}
-		// fflush(stdout);
-		//__thread_wait_handler(0);	 //다시 재움
-		//Thread *pTh;
-		//__thread_wakeup(ReadyQHead);//이새끼를 깨워볼까
-		thread_p->bRunnable == FALSE;
-		// __getThread()는 tid로 linked list의 TCB를 찾아서 반환한다.
-		//thread_p = getThread(pthread_self()); // child에서 TCB가 초기화 안되었는데, 이 함수가 호출되어도 되나 ?
-		// printf(" wait tid %u\n",pTh->tid);
 
+		thread_p->bRunnable == FALSE; //잠재워 지는 부분
 		pthread_mutex_lock(&(thread_p->readyMutex));
-		//         printf("__thread_wait_handler start %u\n",pTh->tid);
-
 		while (thread_p->bRunnable == FALSE)
 			pthread_cond_wait(&(thread_p->readyCond), &(thread_p->readyMutex));
 		pthread_mutex_unlock(&(thread_p->readyMutex));
-		// 		i--;
-		// 		continue;
-		// 	}
-		// }
 	}
-	//fflush(stdout);
-	//이건 waittingqueue 삭제
-	// if (NULL == p->pNext && (NULL == qcbTblEntry[i].pQcb->pThreadHead->pNext && NULL == qcbTblEntry[i].pQcb->pThreadTail->pNext)) /* only one element in queue */
-	// 	{
-	// 		qcbTblEntry[i].pQcb->pThreadHead = qcbTblEntry[i].pQcb->pThreadTail = NULL;
-	// 	}
-	// 	else if ((NULL == p->pNext) && p->pPrev) /* removing pTail */
-	// 	{
-	// 		qcbTblEntry[i].pQcb->pThreadTail = p->pPrev;
-	// 		p->pPrev->pNext = NULL;
-	// 	}
-	// 	else if (p->pNext && (NULL == p->pPrev)) /* removing qcbTblEntry[i].pQcb->pThreadHead */
-	// 	{
-	// 		qcbTblEntry[i].pQcb->pThreadHead = p->pNext;
-	// 		qcbTblEntry[i].pQcb->pThreadHead->pPrev = NULL;
-	// 	}
-	// 	else /* removing from center or somewhere */
-	// 	{
-	// 		p->pPrev->pNext = p->pNext;
-	// 		p->pNext->pPrev = p->pPrev;
-	// 	}
-
-	//break;
 
 	return -1; //실패의 경우
 }
