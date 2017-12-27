@@ -164,6 +164,11 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 	while (1)
 	{
 		int i = msqid;
+		if(	qcbTblEntry[msqid].key == -1)//메세지큐가 삭제된 경우
+		{
+			return -1;
+		}
+			//printf("test\n");
 		Message *p = qcbTblEntry[msqid].pQcb->pMsgHead;
 		for (; p; p = p->pNext)
 		{
@@ -200,7 +205,7 @@ int mymsgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg)
 				return strlen(((Message *)msgp)->data); //이렇게 되면 정상적으로 삭제가 되네
 			}
 		}
-
+	
 		//for문 끝나고 이제 waitingqueue 구현
 		Thread *thread_p = Running_Thread;
 		thread_p->type = msgtyp;
@@ -247,9 +252,20 @@ int mymsgctl(int msqid, int cmd, void *buf)
 {
 	if (qcbTblEntry[msqid].pQcb->pMsgHead != NULL)
 		return -1;
-	qcbTblEntry[msqid].key = -1;
+	if (qcbTblEntry[msqid].pQcb->pThreadHead != NULL)
+		return -1;
+	// for (int i = 0; i < MAX_QCB_SIZE; i++)
+	// {
+	// 	if (qcbTblEntry[i].key == -1)
+	// 		continue;
+
+	// 	if (qcbTblEntry[i].pQcb->pThreadHead != NULL)
+	// 		return -1;
+	// }
+
 	//Message *p_massage = qcbTblEntry[msqid].pQcb->pMsgHead;
-	Thread *p_thread = qcbTblEntry[msqid].pQcb->pThreadHead;
+	// Thread *p_thread = qcbTblEntry[msqid].pQcb->pThreadHead;
+	qcbTblEntry[msqid].key = -1;
 
 	// while(p_massage)
 	// {
@@ -258,13 +274,13 @@ int mymsgctl(int msqid, int cmd, void *buf)
 	// 	free(q_massage);
 	// 	q_massage=NULL;
 	// }
-	while (p_thread)
-	{
-		Thread *q_thread = p_thread;
-		p_thread = p_thread->pNext;
-		free(q_thread);
-		q_thread = NULL;
-	}
+	// while (p_thread)
+	// {
+	// 	Thread *q_thread = p_thread;
+	// 	p_thread = p_thread->pNext;
+	// 	free(q_thread);
+	// 	q_thread = NULL;
+	// }
 	free(qcbTblEntry[msqid].pQcb);
 	qcbTblEntry[msqid].pQcb = NULL;
 

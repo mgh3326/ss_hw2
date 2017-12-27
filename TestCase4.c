@@ -49,7 +49,7 @@ int ReadInTestCase4(int inputKey)
 	printf("Received Msg= %s,Len %d, Key : %d\n", inmsg.mtext, len, key);
 }
 
-void Sender(int *key)
+void Sender(int *key)//2
 {
 	int count;
 	int key1 = key[0];
@@ -57,17 +57,17 @@ void Sender(int *key)
 	for (count = 0; count < 2; count++)
 	{
 		SendInTestCase4(key1);
-		ReadInTestCase4(key2);
+		ReadInTestCase4(key2);//여기 걸리고
 	}
 }
-void Receiver(int *key)
+void Receiver(int *key)//1
 {
 	int count;
 	int key1 = key[0];
 	int key2 = key[1];
 	for (count = 0; count < 2; count++)
 	{
-		ReadInTestCase4(key1);
+		ReadInTestCase4(key1);//먼저 여기 걸리고
 		SendInTestCase4(key2);
 	}
 }
